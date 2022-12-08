@@ -5,7 +5,7 @@ module Bosh::AwsCloud
 
     # Newer, nitro-based instances use NVMe storage volumes.
     # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances
-    NVME_INSTANCE_FAMILIES = %w[a1 c5 c5a c5ad c5d c5n c6g c6gd c6gn c6i d3 d3en g4 i3en inf1 m5 m5a m5ad m5d m5dn m5n m5zn m6g m6gd m6i p3dn p4 r5 r5a r5ad r5b r5d r5dn r5n r6g r6gd r6i t3 t3a t4g z1d].freeze
+    NVME_INSTANCE_FAMILIES = %w[a1 c5 c5a c5ad c5d c5n c6g c6gd c6gn c6i c6id c6in d3 d3en g4 i3en i4i lm4gn ls4gen inf1 m5 m5a m5ad m5d m5dn m5n m5zn m6a m6g m6gd m6i m6id m6idn m6in p3dn p4 r5 r5a r5ad r5b r5d r5dn r5n r6a r6g r6gd r6i r6in r6id r6idn t3 t3a t4g z1d].freeze
 
     def initialize(logger, stemcell, vm_cloud_props)
       @logger = logger
@@ -155,7 +155,7 @@ module Bosh::AwsCloud
       case @virtualization_type
 
         when 'hvm'
-          if instance_type =~ /^i3\./ || instance_type =~ /^i3en\./
+          if instance_type =~ /^i3\./
             '/dev/nvme0n1'
           else
             '/dev/xvdba'
@@ -285,6 +285,18 @@ module Bosh::AwsCloud
         'i2.4xlarge' => [800, 4],
         'i2.8xlarge' => [800, 8],
 
+        'd2.xlarge' => [2000, 3],
+        'd2.2xlarge' => [2000, 6],
+        'd2.4xlarge' => [2000, 12],
+        'd2.8xlarge' => [2000, 24],
+
+        'x1.16xlarge' => [1920, 1],
+        'x1.32xlarge' => [1920, 2],
+
+         #Current generation - NVME block store
+         #Storage optimized - feature use_instance_store uses these values to map raw_ephmeral
+         #https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances
+
         'i3.large' => [475, 1],
         'i3.xlarge' => [950, 1],
         'i3.2xlarge' => [1900, 1],
@@ -300,13 +312,79 @@ module Bosh::AwsCloud
         'i3en.12xlarge' => [7500, 4],
         'i3en.24xlarge' => [7500, 8],
 
-        'd2.xlarge' => [2000, 3],
-        'd2.2xlarge' => [2000, 6],
-        'd2.4xlarge' => [2000, 12],
-        'd2.8xlarge' => [2000, 24],
+        'i4i.large' => [468, 1],
+        'i4i.xlarge' => [937, 1],
+        'i4i.2xlarge' => [1875, 1],
+        'i4i.4xlarge' => [3750, 1],
+        'i4i.8xlarge' => [3750, 2],
+        'i4i.16xlarge' => [3750, 4],
+        'i4i.32xlarge' => [3750, 8],
 
-        'x1.16xlarge' => [1920, 1],
-        'x1.32xlarge' => [1920, 2],
+        # General purpose with NVMe SSD block storage.
+
+        'm6id.large' => [118, 1],
+        'm6id.xlarge' => [237, 1],
+        'm6id.2xlarge' => [474, 1],
+        'm6id.4xlarge' => [950, 1],
+        'm6id.8xlarge' => [1900, 1],
+        'm6id.12xlarge' => [1425, 2],
+        'm6id.16xlarge' => [1900, 2],
+        'm6id.24xlarge' => [1425, 4],
+        'm6id.32xlarge' => [1900, 4],
+
+        'm6idn.large' => [118, 1],
+        'm6idn.xlarge' => [237, 1],
+        'm6idn.2xlarge' => [474, 1],
+        'm6idn.4xlarge' => [950, 1],
+        'm6idn.8xlarge' => [1900, 1],
+        'm6idn.12xlarge' => [1425, 2],
+        'm6idn.16xlarge' => [1900, 2],
+        'm6idn.24xlarge' => [1425, 2],
+        'm6idn.32xlarge' => [1900, 4],
+
+        # Memory optimized with NVMe block storage.
+
+        'r6id.large' => [118, 1],
+        'r6id.xlarge' => [237, 1],
+        'r6id.2xlarge' => [474, 1],
+        'r6id.4xlarge' => [950, 1],
+        'r6id.8xlarge' => [1900, 1],
+        'r6id.12xlarge' => [1425, 2],
+        'r6id.16xlarge' => [1900, 2],
+        'r6id.24xlarge' => [1425, 4],
+        'r6id.32xlarge' => [1900, 4],
+
+        'r6idn.large' => [118, 1],
+        'r6idn.xlarge' => [237, 1],
+        'r6idn.2xlarge' => [474, 1],
+        'r6idn.4xlarge' => [950, 1],
+        'r6idn.8xlarge' => [1900, 1],
+        'r6idn.12xlarge' => [1425, 2],
+        'r6idn.16xlarge' => [1900, 2],
+        'r6idn.24xlarge' => [1425, 4],
+        'r6idn.32xlarge' => [1900, 4],
+
+        'r6gd.medium' => [59, 1],
+        'r6gd.large' => [118, 1],
+        'r6gd.xlarge' => [237, 1],
+        'r6gd.2xlarge' => [474, 1],
+        'r6gd.4xlarge' => [950, 1],
+        'r6gd.8xlarge' => [1900, 2],
+        'r6gd.12xlarge' => [1425, 2],
+        'r6gd.16xlarge' => [1900, 2],
+
+        # compute optimized.
+
+        'c6id.large' => [118, 1],
+        'c6id.xlarge' => [237, 1],
+        'c6id.2xlarge' => [474, 1],
+        'c6id.4xlarge' => [950, 1],
+        'c6id.8xlarge' => [1900, 1],
+        'c6id.12xlarge' => [1425, 2],
+        'c6id.16xlarge' => [1900, 2],
+        'c6id.24xlarge' => [1425, 4],
+        'c6id.32xlarge' => [1900, 4],
+
       }
 
       attr_reader :size, :count
